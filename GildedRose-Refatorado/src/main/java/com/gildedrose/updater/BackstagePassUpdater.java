@@ -4,33 +4,40 @@ import com.gildedrose.Item;
 
 /**
  * Estratégia para "Backstage passes" (Entrada para os Bastidores):
- * - Aumenta a qualidade em 1 quando sellIn > 10.
- * - Aumenta a qualidade em 2 quando sellIn <= 10 e > 5.
- * - Aumenta a qualidade em 3 quando sellIn <= 5 e > 0.
- * - Zera a qualidade imediatamente quando a data de venda passa (sellIn < 0 após decremento).
- * - A qualidade nunca ultrapassa 50.
+ * <ul>
+ *     <li>+1 de qualidade quando faltam mais de 10 dias;</li>
+ *     <li>+2 quando faltam 10 dias ou menos;</li>
+ *     <li>+3 quando faltam 5 dias ou menos;</li>
+ *     <li>a qualidade cai para 0 após o show (data de venda passada);</li>
+ *     <li>a qualidade nunca ultrapassa 50.</li>
+ * </ul>
  */
-public class BackstagePassUpdater extends AbstractItemUpdater {
+final class BackstagePassUpdater extends AbstractItemUpdater {
 
-    private static final int TEN_DAYS_THRESHOLD = 10;
-    private static final int FIVE_DAYS_THRESHOLD = 5;
+    private static final int TEN_DAYS = 10;
+    private static final int FIVE_DAYS = 5;
+
+    private static final int REGULAR_INCREASE = 1;
+    private static final int TEN_DAYS_OR_LESS_INCREASE = 2;
+    private static final int FIVE_DAYS_OR_LESS_INCREASE = 3;
 
     @Override
-    public void update(Item item) {
-        increaseQuality(item, 1);
+    protected void updateQuality(Item item) {
+        increaseQuality(item, qualityIncreaseFor(item.sellIn));
+    }
 
-        if (item.sellIn <= TEN_DAYS_THRESHOLD) {
-            increaseQuality(item, 1);
+    @Override
+    protected void updateQualityAfterExpiration(Item item) {
+        item.quality = MIN_QUALITY;
+    }
+
+    private static int qualityIncreaseFor(int sellIn) {
+        if (sellIn <= FIVE_DAYS) {
+            return FIVE_DAYS_OR_LESS_INCREASE;
         }
-
-        if (item.sellIn <= FIVE_DAYS_THRESHOLD) {
-            increaseQuality(item, 1);
+        if (sellIn <= TEN_DAYS) {
+            return TEN_DAYS_OR_LESS_INCREASE;
         }
-
-        decrementSellIn(item);
-
-        if (isExpired(item)) {
-            item.quality = MIN_QUALITY;
-        }
+        return REGULAR_INCREASE;
     }
 }

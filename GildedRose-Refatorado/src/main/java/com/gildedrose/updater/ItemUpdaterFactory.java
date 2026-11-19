@@ -2,9 +2,17 @@ package com.gildedrose.updater;
 
 import com.gildedrose.Item;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+
 /**
- * Fábrica responsável por selecionar a estratégia {@link ItemUpdater} adequada
- * conforme o tipo/nome do {@link Item}.
+ * Seleciona a estratégia {@link ItemUpdater} adequada para cada {@link Item}.
+ * <p>
+ * Itens especiais são resolvidos pelo nome exato; itens cujo nome começa com
+ * {@value #CONJURED_PREFIX} recebem a regra de conjurados; os demais recebem a regra padrão.
+ * Para suportar uma nova categoria basta criar a estratégia e registrá-la aqui.
  */
 public final class ItemUpdaterFactory {
 
@@ -14,30 +22,35 @@ public final class ItemUpdaterFactory {
     public static final String CONJURED_PREFIX = "Conjured";
 
     private static final ItemUpdater DEFAULT_UPDATER = new DefaultItemUpdater();
-    private static final ItemUpdater AGED_BRIE_UPDATER = new AgedBrieUpdater();
-    private static final ItemUpdater BACKSTAGE_PASS_UPDATER = new BackstagePassUpdater();
-    private static final ItemUpdater SULFURAS_UPDATER = new SulfurasUpdater();
     private static final ItemUpdater CONJURED_UPDATER = new ConjuredItemUpdater();
+    private static final Map<String, ItemUpdater> UPDATERS_BY_NAME = createUpdatersByName();
 
     private ItemUpdaterFactory() {
+        // Classe utilitária: não deve ser instanciada.
     }
 
     public static ItemUpdater forItem(Item item) {
-        if (item == null || item.name == null) {
-            return DEFAULT_UPDATER;
+        Objects.requireNonNull(item, "item must not be null");
+
+        ItemUpdater specialUpdater = UPDATERS_BY_NAME.get(item.name);
+        if (specialUpdater != null) {
+            return specialUpdater;
         }
-        if (AGED_BRIE.equals(item.name)) {
-            return AGED_BRIE_UPDATER;
-        }
-        if (BACKSTAGE_PASS.equals(item.name)) {
-            return BACKSTAGE_PASS_UPDATER;
-        }
-        if (SULFURAS.equals(item.name)) {
-            return SULFURAS_UPDATER;
-        }
-        if (item.name.startsWith(CONJURED_PREFIX)) {
+        if (isConjured(item)) {
             return CONJURED_UPDATER;
         }
         return DEFAULT_UPDATER;
+    }
+
+    private static boolean isConjured(Item item) {
+        return item.name != null && item.name.startsWith(CONJURED_PREFIX);
+    }
+
+    private static Map<String, ItemUpdater> createUpdatersByName() {
+        Map<String, ItemUpdater> updaters = new HashMap<>();
+        updaters.put(AGED_BRIE, new AgedBrieUpdater());
+        updaters.put(BACKSTAGE_PASS, new BackstagePassUpdater());
+        updaters.put(SULFURAS, new SulfurasUpdater());
+        return Collections.unmodifiableMap(updaters);
     }
 }

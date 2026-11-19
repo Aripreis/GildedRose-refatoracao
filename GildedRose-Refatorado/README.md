@@ -5,10 +5,12 @@ Este diretório contém a versão refatorada do projeto **Gilded Rose** em Java,
 ## Objetivos da Refatoração
 
 1. **Eliminar a complexidade ciclomática excessiva** do método `updateQuality()` original (condicionais aninhadas e strings mágicas repetidas).
-2. **Aplicar princípios SOLID** (especialmente Responsabilidade Única — SRP — e Aberto/Fechado — OCP) por meio dos padrões **Strategy** e **Factory**.
+2. **Aplicar princípios SOLID** (especialmente Responsabilidade Única — SRP — e Aberto/Fechado — OCP) por meio dos padrões **Strategy**, **Template Method** e **Factory**.
 3. **Preservar intactos a classe `Item` e o atributo `Item[] items` em `GildedRose`**, mantendo total compatibilidade com o código legado e com a especificação original.
 4. **Implementar a nova categoria de itens `Conjured` (Conjurados Magicamente)**, que perdem qualidade duas vezes mais rápido que os itens comuns.
 5. **Garantir segurança nas alterações com testes unitários abrangentes** em JUnit 5.
+
+> As melhorias de Clean Code aplicadas na revisão estão documentadas em [NOTAS_REFATORACAO.md](NOTAS_REFATORACAO.md).
 
 ## Estrutura do Projeto Refatorado
 
@@ -19,22 +21,25 @@ GildedRose-Refatorado/
 ├── settings.gradle
 ├── gradle.properties
 ├── README.md
+├── NOTAS_REFATORACAO.md                     # Registro das melhorias de Clean Code
 └── src/
     ├── main/java/com/gildedrose/
     │   ├── Item.java                        # Mantida inalterada (regra original)
     │   ├── GildedRose.java                  # Delega a atualização diária às estratégias
     │   └── updater/
-    │       ├── ItemUpdater.java             # Interface Strategy para atualização de itens
-    │       ├── AbstractItemUpdater.java     # Operações comuns e limites de qualidade (0..50)
+    │       ├── ItemUpdater.java             # [público] Interface Strategy
+    │       ├── ItemUpdaterFactory.java      # [público] Seleciona a estratégia de cada item
+    │       ├── AbstractItemUpdater.java     # Template Method do ciclo diário + limites (0..50)
     │       ├── DefaultItemUpdater.java      # Itens comuns (-1/dia; -2/dia após vencimento)
+    │       ├── ConjuredItemUpdater.java     # Itens Conjurados (2x a taxa comum: -2/dia; -4/dia)
     │       ├── AgedBrieUpdater.java         # Aged Brie (+1/dia; +2/dia após vencimento, máx 50)
     │       ├── BackstagePassUpdater.java    # Backstage Passes (+1, +2 se <=10, +3 se <=5, zera se vencido)
-    │       ├── SulfurasUpdater.java         # Sulfuras (lendário, imutável, quality 80)
-    │       ├── ConjuredItemUpdater.java     # Itens Conjurados (-2/dia; -4/dia após vencimento)
-    │       └── ItemUpdaterFactory.java      # Seleciona a estratégia adequada para cada item
+    │       └── SulfurasUpdater.java         # Sulfuras (lendário, imutável, quality 80)
     └── test/java/com/gildedrose/
-        ├── GildedRoseTest.java              # Suíte completa de testes unitários (JUnit 5)
-        └── TexttestFixture.java             # Simulação diária do estoque
+        ├── GildedRoseTest.java              # Testes parametrizados das regras de negócio (JUnit 5)
+        ├── TexttestFixture.java             # Simulação diária do estoque
+        └── updater/
+            └── ItemUpdaterFactoryTest.java  # Testes da seleção de estratégias
 ```
 
 ## Regras de Negócio Atendidas

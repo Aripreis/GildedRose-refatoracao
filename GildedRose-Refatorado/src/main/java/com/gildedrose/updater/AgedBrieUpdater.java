@@ -4,19 +4,23 @@ import com.gildedrose.Item;
 
 /**
  * Estratégia para "Aged Brie" (Queijo Brie envelhecido):
- * - Aumenta a qualidade em 1 por dia enquanto dentro do prazo e em 2 após o vencimento.
- * - A qualidade nunca ultrapassa 50.
+ * <ul>
+ *     <li>a qualidade aumenta {@value #APPRECIATION_RATE} por dia dentro do prazo;</li>
+ *     <li>após a data de venda, aumenta mais {@value #APPRECIATION_RATE} (total de 2 por dia);</li>
+ *     <li>a qualidade nunca ultrapassa 50.</li>
+ * </ul>
  */
-public class AgedBrieUpdater extends AbstractItemUpdater {
+final class AgedBrieUpdater extends AbstractItemUpdater {
 
-    private static final int DAILY_APPRECIATION = 1;
+    private static final int APPRECIATION_RATE = 1;
 
     @Override
-    public void update(Item item) {
-        increaseQuality(item, DAILY_APPRECIATION);
-        decrementSellIn(item);
-        if (isExpired(item)) {
-            increaseQuality(item, DAILY_APPRECIATION);
-        }
+    protected void updateQuality(Item item) {
+        increaseQuality(item, APPRECIATION_RATE);
+    }
+
+    @Override
+    protected void updateQualityAfterExpiration(Item item) {
+        increaseQuality(item, APPRECIATION_RATE);
     }
 }

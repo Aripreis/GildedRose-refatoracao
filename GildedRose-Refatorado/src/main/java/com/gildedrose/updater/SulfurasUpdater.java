@@ -4,9 +4,9 @@ import com.gildedrose.Item;
 
 /**
  * Estratégia para "Sulfuras" (item lendário):
- * - Não possui prazo de venda a decrementar e sua qualidade (80) permanece imutável.
+ * não possui prazo de venda a decrementar e sua qualidade (80) permanece imutável.
  */
-public class SulfurasUpdater implements ItemUpdater {
+final class SulfurasUpdater implements ItemUpdater {
 
     @Override
     public void update(Item item) {

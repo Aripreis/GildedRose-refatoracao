@@ -4,20 +4,33 @@ import com.gildedrose.Item;
 
 /**
  * Estratégia padrão para itens comuns:
- * - Decrementa sellIn em 1 por dia.
- * - Decrementa quality em 1 antes da data de venda e em 2 após o vencimento.
- * - A qualidade nunca fica negativa.
+ * <ul>
+ *     <li>a qualidade diminui {@value #NORMAL_DEGRADATION_RATE} por dia dentro do prazo;</li>
+ *     <li>após a data de venda, a qualidade diminui duas vezes mais rápido;</li>
+ *     <li>a qualidade nunca fica negativa.</li>
+ * </ul>
  */
-public class DefaultItemUpdater extends AbstractItemUpdater {
+class DefaultItemUpdater extends AbstractItemUpdater {
 
-    private static final int DAILY_DEGRADATION = 1;
+    static final int NORMAL_DEGRADATION_RATE = 1;
+
+    private final int degradationRate;
+
+    DefaultItemUpdater() {
+        this(NORMAL_DEGRADATION_RATE);
+    }
+
+    protected DefaultItemUpdater(int degradationRate) {
+        this.degradationRate = degradationRate;
+    }
 
     @Override
-    public void update(Item item) {
-        decreaseQuality(item, DAILY_DEGRADATION);
-        decrementSellIn(item);
-        if (isExpired(item)) {
-            decreaseQuality(item, DAILY_DEGRADATION);
-        }
+    protected void updateQuality(Item item) {
+        decreaseQuality(item, degradationRate);
+    }
+
+    @Override
+    protected void updateQualityAfterExpiration(Item item) {
+        decreaseQuality(item, degradationRate);
     }
 }
